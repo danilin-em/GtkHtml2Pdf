@@ -3,21 +3,41 @@ from logging import Logger
 from queue import Queue
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+import os
+from pathlib import Path
+
 
 class RequestHandler(BaseHTTPRequestHandler):
 
+    def do_POST(self):
+        pass
     def do_GET(self):
         parsed_path = urlparse(self.path)
-        input_url = parse_qs(parsed_path.query)['url'][0]
-        self.server.request_queue.put(input_url)
+        input_query = parse_qs(parsed_path.query)
+        if not 'url' in input_query:
+            self.send_response(400)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            self.wfile.write(bytes('{"error":"url query is empty"}', 'utf-8'))
+            return
 
-        pdf = self.server.response_queue.get()
+        self.server.request_queue.put(input_query['url'][0])
+
+        filepath = self.server.response_queue.get()
+        filename = os.path.basename(filepath)
         self.server.response_queue.task_done()
 
+        if 'show' in input_query:
+            self.send_response(200)
+            self.send_header('Content-type', 'application/pdf')
+            self.end_headers()
+            self.wfile.write(Path(filepath).read_bytes())
+            return
+
         self.send_response(200)
-        self.send_header("Content-type", "text/html")
+        self.send_header('Content-type', 'text/json')
         self.end_headers()
-        self.wfile.write(bytes("OK: "+pdf, "utf-8"))
+        self.wfile.write(bytes('{"filename":"'+filename+'"}', 'utf-8'))
 
 class HTTPServer(BaseHTTPServer):
     request_queue: Queue

@@ -1,6 +1,6 @@
 import signal, queue
 
-from datetime import datetime
+from uuid import uuid4
 from logging import Logger
 from queue import Queue
 
@@ -27,25 +27,22 @@ class Printer:
         self.print_settings.set(Gtk.PRINT_SETTINGS_PRINTER, 'Print to File')
 
     def finished_print(self, operation):
-        file = operation.get_print_settings().get(Gtk.PRINT_SETTINGS_OUTPUT_URI)
-        self.log.debug('finished_print %s', file)
-        self.response_queue.put(file)
+        filepath = operation.get_print_settings().get(Gtk.PRINT_SETTINGS_OUTPUT_URI)[7:]
+        self.log.debug('finished_print %s', filepath)
+        self.response_queue.put(filepath)
         return True
     def failed_print(self, operation, error):
         self.log.debug('failed_print %s', error)
-        Gtk.main_quit()
         return True
     def load_failed(self, webview, error):
         self.log.debug('load_failed %s', error)
         return True
     def load_changed(self, webview, event):
-        self.log.debug('load_changed %s', event)
         if WebKit2.LoadEvent.FINISHED == event:
             webview.run_javascript('print();')
         return True
     def process_print(self, webview, operation):
-        self.log.debug('process_print')
-        self.print_settings.set(Gtk.PRINT_SETTINGS_OUTPUT_URI, 'file:///tmp/pdf/'+str(datetime.now().timestamp())+'.pdf')
+        self.print_settings.set(Gtk.PRINT_SETTINGS_OUTPUT_URI, 'file:///tmp/pdf/'+str(uuid4())+'.pdf')
         operation.set_print_settings(self.print_settings)
         operation.connect('finished', self.finished_print)
         operation.connect('failed', self.failed_print)
