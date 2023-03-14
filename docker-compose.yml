@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  app:
+    image: localhost/projects/gtkhtml2pdf:latest
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./pdf:/tmp/pdf
+      - ./:/usr/src/app
