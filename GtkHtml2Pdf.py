@@ -1,19 +1,25 @@
-import threading, queue
+import threading, sys
+from logging import Logger, StreamHandler as LoggerStreamHandler
+from queue import Queue
 
 import ApiServer
 import GTKWebView
 
-base_queue = queue.Queue()
+app_logger = Logger('app')
+app_logger.addHandler(LoggerStreamHandler(sys.stdout))
 
-def web_view(app_queue):
-    print('web_view')
+request_queue = Queue()
+response_queue = Queue()
+
+def web_view(req_queue: Queue, resp_queue: Queue, log: Logger):
+    log.debug('web_view')
     window = GTKWebView.Window()
-    window.main(app_queue)
+    window.main(req_queue, resp_queue, log)
 
-def http_server(app_queue):
-    print('http_server')
-    api_server = ApiServer.Server(app_queue)
+def http_server(req_queue: Queue, resp_queue: Queue, log: Logger):
+    log.debug('http_server')
+    api_server = ApiServer.Server(req_queue, resp_queue, log)
     api_server.serve_forever()
 
-threading.Thread(target=web_view, args=(base_queue,)).start()
-threading.Thread(target=http_server, args=(base_queue,)).start()
+threading.Thread(target=web_view, args=(request_queue, response_queue, app_logger, )).start()
+threading.Thread(target=http_server, args=(request_queue, response_queue, app_logger, )).start()
