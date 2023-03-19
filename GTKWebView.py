@@ -34,8 +34,8 @@ class Printer:
     def failed_print(self, operation, error):
         self.log.debug('failed_print %s', error)
         return True
-    def load_failed(self, webview, error):
-        self.log.debug('load_failed %s', error)
+    def load_failed(self, web_view, load_event, failing_uri, error):
+        self.log.debug('load_failed %s', load_event, failing_uri, error)
         return True
     def load_changed(self, webview, event):
         if WebKit2.LoadEvent.FINISHED == event:
