@@ -25,6 +25,8 @@ class Printer:
         self.print_settings = Gtk.PrintSettings()
         self.print_settings.set(Gtk.PRINT_SETTINGS_OUTPUT_FILE_FORMAT, 'pdf')
         self.print_settings.set(Gtk.PRINT_SETTINGS_PRINTER, 'Print to File')
+        self.print_settings.set_paper_size(Gtk.PaperSize('iso_a4'))
+        self.print_settings.set_quality(Gtk.PrintQuality.HIGH)
 
     def finished_print(self, operation):
         filepath = operation.get_print_settings().get(Gtk.PRINT_SETTINGS_OUTPUT_URI)[7:]
