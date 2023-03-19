@@ -68,6 +68,9 @@ class Window(Gtk.Window):
         self.log = log
         self.connect('destroy', Gtk.main_quit)
 
+        self.maximize()
+        self.set_hide_titlebar_when_maximized(True)
+
         printer = Printer(response_queue, self.log)
 
         webview = WebKit2.WebView()
